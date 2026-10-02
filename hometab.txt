@@ -1,303 +1,330 @@
+
 local Env = getgenv()
-local Players = game:GetService("Players")
-local HttpService = game:GetService("HttpService")
-local Player = Players.LocalPlayer
+local Plrs = game:GetService("Players")
+local Http = game:GetService("HttpService")
+local Plr = Plrs.LocalPlayer
 
-local Lumen = Env.Lumen
-if not Lumen then
-	Lumen = loadstring(game:HttpGet("https://raw.githubusercontent.com/truecurrentz/XxUixX/main/Lumen.lua.txt"))()
+local Lum = Env.Lumen
+if not Lum then
+	Lum = loadstring(game:HttpGet("https://raw.githubusercontent.com/truecurrentz/XxUixX/main/Lumen.lua.txt"))()
 end
 
-local HomeCfg = (typeof(Env.LumenHome) == "table" and Env.LumenHome) or {}
-local DiscordInvite = (typeof(HomeCfg.DiscordInvite) == "string" and HomeCfg.DiscordInvite) or "https://discord.gg/CwsJz3uyEZ"
+local Cfg = (typeof(Env.LumenHome) == "table" and Env.LumenHome) or {}
+local Invite = (typeof(Cfg.DiscordInvite) == "string" and Cfg.DiscordInvite) or "https://discord.gg/CwsJz3uyEZ"
 
-local SupportedGames = (typeof(HomeCfg.SupportedGames) == "table" and HomeCfg.SupportedGames) or {
-	{ Name = "Game one"; Status = "Working" };
-	{ Name = "Game two"; Status = "Testing" };
+local Games = (typeof(Cfg.SupportedGames) == "table" and Cfg.SupportedGames) or {
+	{ Name = "Saber Showdown"; Status = "Working" };
+	{ Name = "Bug fixes"; Status = "Working" };
 }
 
-local Updates = (typeof(HomeCfg.Updates) == "table" and HomeCfg.Updates) or {
-	{ Title = "v1.0"; Body = "First release." };
+local Updates = (typeof(Cfg.Updates) == "table" and Cfg.Updates) or {
+	{ Title = "[+] New ui"; Body = "New UI update." };
 }
 
-local IsKeyless = (typeof(JD_REASON) == "string" and JD_REASON == "KEYLESS") or false
-local IsPremium = (typeof(JD_IS_PREMIUM) == "boolean" and JD_IS_PREMIUM) or false
-local ExpiresAt = (typeof(JD_EXPIRES_AT) == "number" and JD_EXPIRES_AT) or nil
+local Keyless = (typeof(JD_REASON) == "string" and JD_REASON == "KEYLESS") or false
+local Premium = (typeof(JD_IS_PREMIUM) == "boolean" and JD_IS_PREMIUM) or false
+local Exp = (typeof(JD_EXPIRES_AT) == "number" and JD_EXPIRES_AT) or nil
 
-if HomeCfg.IsKeyless == true then
-	IsKeyless = true
-end
-if HomeCfg.IsPremium == true then
-	IsPremium = true
-end
-if IsKeyless == true then
-	IsPremium = false
-end
-if type(ExpiresAt) ~= "number" and type(HomeCfg.ExpiresAt) == "number" then
-	ExpiresAt = HomeCfg.ExpiresAt
+if Cfg.IsKeyless == true then
+	Keyless = true
 end
 
-if Lumen.JunkieResult then
-	if Lumen.JunkieResult.is_keyless == true then
-		IsKeyless = true
+if Cfg.IsPremium == true then
+	Premium = true
+end
+
+if Keyless then
+	Premium = false
+end
+
+if type(Exp) ~= "number" and type(Cfg.ExpiresAt) == "number" then
+	Exp = Cfg.ExpiresAt
+end
+
+if Lum.JunkieResult then
+	if Lum.JunkieResult.is_keyless == true then
+		Keyless = true
 	end
-	if Lumen.JunkieResult.is_premium == true and not IsKeyless then
-		IsPremium = true
+	if Lum.JunkieResult.is_premium == true and not Keyless then
+		Premium = true
 	end
 end
 
-if type(ExpiresAt) ~= "number" and Lumen.Auth and type(Lumen.Auth.ExpiresAt) == "number" then
-	ExpiresAt = Lumen.Auth.ExpiresAt
+if type(Exp) ~= "number" and Lum.Auth and type(Lum.Auth.ExpiresAt) == "number" then
+	Exp = Lum.Auth.ExpiresAt
 end
 
-local KeyText = "Not linked"
-local RawKey = nil
+local Key = "Not linked"
+local Raw = nil
+
 if typeof(Env.LumenUserKey) == "string" and Env.LumenUserKey ~= "" then
-	RawKey = Env.LumenUserKey
+	Raw = Env.LumenUserKey
 elseif typeof(Env.SCRIPT_KEY) == "string" and Env.SCRIPT_KEY ~= "" then
-	RawKey = Env.SCRIPT_KEY
-end
-if RawKey then
-	KeyText = RawKey
-elseif IsKeyless then
-	KeyText = "KEYLESS"
+	Raw = Env.SCRIPT_KEY
 end
 
-local Headshot = ""
+if Raw then
+	Key = Raw
+elseif Keyless then
+	Key = "KEYLESS"
+end
+
+local Head = ""
+
 pcall(function()
-	Headshot = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
+	Head = Plrs:GetUserThumbnailAsync(
+		Plr.UserId,
+		Enum.ThumbnailType.HeadShot,
+		Enum.ThumbnailSize.Size150x150
+	)
 end)
-if type(Headshot) ~= "string" or Headshot == "" then
-	Headshot = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(Player.UserId) .. "&w=150&h=150"
+
+if type(Head) ~= "string" or Head == "" then
+	Head = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(Plr.UserId) .. "&w=150&h=150"
 end
 
-local function LiveInfo()
-	local Count = 0
-	if typeof(JD_LIVE_USERS) == "table" then
-		for _, Id in ipairs(JD_LIVE_USERS) do
-			local Plr = Players:GetPlayerByUserId(Id)
-			if Plr then
-				Count += 1
-			end
-		end
-	end
-	if Count == 0 then
-		return 1
-	end
-	return Count
-end
-
-local function DiscordInviteCode()
-	if typeof(DiscordInvite) ~= "string" then
+local function Code()
+	if typeof(Invite) ~= "string" then
 		return nil
 	end
-	local Code = DiscordInvite:match("discord%.gg/([%w%-]+)")
-	if not Code then
-		Code = DiscordInvite:match("discord%.com/invite/([%w%-]+)")
+
+	local Val = Invite:match("discord%.gg/([%w%-]+)")
+	if not Val then
+		Val = Invite:match("discord%.com/invite/([%w%-]+)")
 	end
-	return Code
+
+	return Val
 end
 
-local function DiscordInfo()
-	if typeof(HomeCfg.DiscordUsers) == "number" then
-		return HomeCfg.DiscordUsers
+local function DCount()
+	if typeof(Cfg.DiscordUsers) == "number" then
+		return Cfg.DiscordUsers
 	end
-	local Code = DiscordInviteCode()
-	if not Code then
+
+	local Val = Code()
+	if not Val then
 		return nil
 	end
+
 	local Count = nil
+
 	pcall(function()
-		local Response = game:HttpGet("https://discord.com/api/v9/invites/" .. Code .. "?with_counts=true")
-		local Data = HttpService:JSONDecode(Response)
+		local Res = game:HttpGet("https://discord.com/api/v9/invites/" .. Val .. "?with_counts=true")
+		local Data = Http:JSONDecode(Res)
+
 		if type(Data) == "table" and type(Data.approximate_member_count) == "number" then
 			Count = Data.approximate_member_count
 		end
 	end)
+
 	return Count
 end
 
-local function StatusText()
-	if IsPremium then
+local function Status()
+	if Premium then
 		return "Premium"
 	end
-	if IsKeyless then
+	if Keyless then
 		return "Keyless"
 	end
 	return "Standard"
 end
 
-local function Alive(Object)
-	return typeof(Object) == "Instance" and Object.Parent ~= nil
+local function Alive(Obj)
+	return typeof(Obj) == "Instance" and Obj.Parent ~= nil
 end
 
-local function WindowAlive(Window)
-	return type(Window) == "table" and Alive(Window.Canvas)
+local function WinAlive(Win)
+	return type(Win) == "table" and Alive(Win.Canvas)
 end
 
-local function HomeAlive(Window)
-	if not WindowAlive(Window) then
+local function HomeAlive(Win)
+	if not WinAlive(Win) then
 		return false
 	end
-	local Page = Window.LumenHomePage
+
+	local Page = Win.LumenHomePage
 	return type(Page) == "table" and Alive(Page.Button)
 end
 
-local function PickWindow(Window)
-	if WindowAlive(Window) then
-		return Window
+local function Pick(Win)
+	if WinAlive(Win) then
+		return Win
 	end
-	if WindowAlive(Env.LumenHomeWindow) then
+
+	if WinAlive(Env.LumenHomeWindow) then
 		return Env.LumenHomeWindow
 	end
-	if type(Lumen.Windows) == "table" then
-		for _, Win in ipairs(Lumen.Windows) do
-			if WindowAlive(Win) then
-				return Win
+
+	if type(Lum.Windows) == "table" then
+		for _, Val in ipairs(Lum.Windows) do
+			if WinAlive(Val) then
+				return Val
 			end
 		end
 	end
+
 	return nil
 end
 
-local function BuildHome(Window)
-	Window = PickWindow(Window)
+local function Build(Win)
+	Win = Pick(Win)
 
-	if not Window then
-		Window = Lumen:Window({
+	if not Win then
+		Win = Lum:Window({
 			Title = "Lumen";
 			Footer = ".gg/yourserver";
 			Logo = "layers";
 		})
 	end
 
-	Env.LumenHomeWindow = Window
+	Env.LumenHomeWindow = Win
 
-	if HomeAlive(Window) then
-		return Window.LumenHomeTab
+	if HomeAlive(Win) then
+		return Win.LumenHomeTab
 	end
 
-	if type(ExpiresAt) == "number" and Lumen.SetKeyTime then
-		pcall(Lumen.SetKeyTime, ExpiresAt)
+	if type(Exp) == "number" and Lum.SetKeyTime then
+		pcall(Lum.SetKeyTime, Exp)
 	end
 
-	local HomePage = Window:Page({ Icon = "home" })
-	local HomeTab = HomePage:SubPage({ Name = "Home" })
-
-	Window.LumenHomePage = HomePage
-	Window.LumenHomeTab = HomeTab
-
-	local Profile = HomeTab:Section({ Name = "Profile"; Side = "Left"; Icon = "user" })
-
-	Profile:Image({ Image = Headshot; Height = 120 })
-
-	Profile:Paragraph({
-		Title = Player.DisplayName;
-		Body = "@" .. Player.Name .. "\nStatus: " .. StatusText();
+	local Page = Win:Page({
+		Icon = "home";
 	})
 
-	Profile:Paragraph({
+	local Tab = Page:SubPage({
+		Name = "Home";
+	})
+
+	Win.LumenHomePage = Page
+	Win.LumenHomeTab = Tab
+
+	local Prof = Tab:Section({
+		Name = "Profile";
+		Side = "Left";
+		Icon = "user";
+	})
+
+	Prof:Image({
+		Image = Head;
+		Height = 120;
+	})
+
+	Prof:Paragraph({
+		Title = Plr.DisplayName;
+		Body = "@" .. Plr.Name .. "\nStatus: " .. Status();
+	})
+
+	Prof:Paragraph({
 		Title = "Key";
-		Body = KeyText;
+		Body = Key;
 	})
 
-	local GamesSection = HomeTab:Section({ Name = "Supported games"; Side = "Right"; Icon = "gamepad" })
+	local GSec = Tab:Section({
+		Name = "Supported games";
+		Side = "Right";
+		Icon = "gamepad";
+	})
 
-	for _, GameInfo in ipairs(SupportedGames) do
-		local GameName = GameInfo
-		local GameStatus = ""
-		if type(GameInfo) == "table" then
-			GameName = tostring(GameInfo.Name or "Game")
-			GameStatus = tostring(GameInfo.Status or "")
+	for _, Val in ipairs(Games) do
+		local Name = Val
+		local State = ""
+
+		if type(Val) == "table" then
+			Name = tostring(Val.Name or "Game")
+			State = tostring(Val.Status or "")
 		end
-		if GameStatus == "" then
-			GameStatus = "Supported"
+
+		if State == "" then
+			State = "Supported"
 		end
-		GamesSection:Paragraph({
-			Title = GameName;
-			Body = GameStatus;
+
+		GSec:Paragraph({
+			Title = Name;
+			Body = State;
 		})
 	end
 
-	local UpdatesSection = HomeTab:Section({ Name = "Latest updates"; Side = "Left"; Icon = "bell" })
+	local Usec = Tab:Section({
+		Name = "Latest updates";
+		Side = "Left";
+		Icon = "bell";
+	})
 
-	for _, UpdateInfo in ipairs(Updates) do
-		local UpdateTitle = "Update"
-		local UpdateBody = tostring(UpdateInfo)
-		if type(UpdateInfo) == "table" then
-			UpdateTitle = tostring(UpdateInfo.Title or "Update")
-			UpdateBody = tostring(UpdateInfo.Body or "")
+	for _, Val in ipairs(Updates) do
+		local Name = "Update"
+		local Body = tostring(Val)
+
+		if type(Val) == "table" then
+			Name = tostring(Val.Title or "Update")
+			Body = tostring(Val.Body or "")
 		end
-		UpdatesSection:Paragraph({
-			Title = UpdateTitle;
-			Body = UpdateBody;
+
+		Usec:Paragraph({
+			Title = Name;
+			Body = Body;
 		})
 	end
 
-	local LiveSection = HomeTab:Section({ Name = "Live users"; Side = "Right"; Icon = "users" })
-
-	local LiveCount = LiveInfo()
-	local LivePara = LiveSection:Paragraph({
-		Title = "On right now";
-		Body = tostring(LiveCount) .. " using the script";
+	local DSec = Tab:Section({
+		Name = "Discord users";
+		Side = "Right";
+		Icon = "users";
 	})
 
-	LiveSection:Button({
+	DSec:Button({
 		Name = "Join discord";
 		Callback = function()
-			local Opened = false
+			local Open = false
+
 			pcall(function()
-				local web = cloneref(game:GetService("WebViewService"))
-				web:OpenWindowV2(DiscordInvite)
-				Opened = true
+				local Web = cloneref(game:GetService("WebViewService"))
+				Web:OpenWindowV2(Invite)
+				Open = true
+
 				task.delay(9, function()
 					pcall(function()
-						web:CloseWindow()
+						Web:CloseWindow()
 					end)
 				end)
 			end)
-			if not Opened and typeof(setclipboard) == "function" then
-				Opened = pcall(setclipboard, DiscordInvite) == true
+
+			if not Open and typeof(setclipboard) == "function" then
+				Open = pcall(setclipboard, Invite) == true
 			end
-			Lumen.Notify({
+
+			Lum.Notify({
 				Title = "Discord";
-				Text = Opened and "Opening the discord invite." or "Could not open the invite on this executor.";
-				Type = Opened and "Success" or "Error";
+				Text = Open and "Opening the discord invite." or "Could not open the invite on this executor.";
+				Type = Open and "Success" or "Error";
 				Duration = 3;
 			})
 		end;
 	})
 
-	local DiscordCount = DiscordInfo()
-	local DiscordPara = LiveSection:Paragraph({
-		Title = "Discord users:";
-		Body = DiscordCount and tostring(DiscordCount) or "Unavailable";
+	local Count = DCount()
+
+	local DPara = DSec:Paragraph({
+		Title = "Discord members";
+		Body = Count and tostring(Count) or "Unavailable";
 	})
 
 	task.spawn(function()
-		while task.wait(30) do
-			if not WindowAlive(Window) or not LivePara or not Alive(LivePara.Frame) then
-				break
-			end
-			LivePara.SetBody(tostring(LiveInfo()) .. " using the script")
-		end
-	end)
-
-	task.spawn(function()
 		while task.wait(120) do
-			if not WindowAlive(Window) or not DiscordPara or not Alive(DiscordPara.Frame) then
+			if not WinAlive(Win) or not DPara or not Alive(DPara.Frame) then
 				break
 			end
-			local NewDiscordCount = DiscordInfo()
-			DiscordPara.SetBody(NewDiscordCount and tostring(NewDiscordCount) or "Unavailable")
+
+			local New = DCount()
+			DPara.SetBody(New and tostring(New) or "Unavailable")
 		end
 	end)
 
-	return HomeTab
+	return Tab
 end
 
-Env.LumenBuildHome = BuildHome
+Env.LumenBuildHome = Build
 
-BuildHome(Env.LumenHomeWindow)
+Build(Env.LumenHomeWindow)
 
-return BuildHome
+return Build
